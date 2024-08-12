@@ -4,8 +4,9 @@ import router from './router'
 const PORT: number = 8000
 
 const app: Application = express()
+app.use(express.json())
 
-app.get('/api', (req: Request, res: Response) => {
+app.post('/api', (req: Request, res: Response) => {
     res.status(200).send({
         status: 'ok',
         msg: 'Welcome to my Api'
