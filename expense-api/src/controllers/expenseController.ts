@@ -1,15 +1,6 @@
 import { Request, Response } from "express";
 import fs from 'fs'
-
-interface IExpense {
-    id: number;
-    title: string;
-    nominal: number;
-    type: string;
-    category: string;
-    date: string;
-
-}
+import { IExpense } from "../type";
 
 export const getExpense = (req: Request, res: Response) => {
     const expense: IExpense[] = JSON.parse(fs.readFileSync('./src/data/expense.json', 'utf-8'))
