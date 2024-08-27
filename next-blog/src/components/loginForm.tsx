@@ -1,5 +1,10 @@
 "use client"
-import { ErrorMessage, Field, Form, Formik } from "formik";
+import { loginAuthor } from "@/lib/author";
+import { createToken } from "@/lib/server";
+import { IAuthorLogin } from "@/type/author";
+import { ErrorMessage, Field, Form, Formik, FormikHelpers } from "formik";
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 import * as yup from 'yup'
 
 const LoginSchema = yup.object().shape({
@@ -9,17 +14,19 @@ const LoginSchema = yup.object().shape({
       .required("password required")
 });
 
-type InputForm = {
-    email: string,
-    password: string
-}
-
 export default function LoginForm() {
-    const onLogin = async (data: InputForm) => {
+    const router = useRouter()
+    const onLogin = async (data: IAuthorLogin, action: FormikHelpers<IAuthorLogin>) => {
         try {
-          console.log(data);
+          const { result, ok } = await loginAuthor(data)
+          if (!ok) throw result.msg
+          toast.success(result.msg)
+          action.resetForm()
+          createToken(result.token)
+          router.push('/')
         } catch (err) {
           console.log(err);
+          toast.error(err as string)
         }
     }
     return (
@@ -30,8 +37,7 @@ export default function LoginForm() {
             }}
             validationSchema={LoginSchema}
             onSubmit={(values, action) => {
-                onLogin(values)
-                action.resetForm()
+                onLogin(values, action)
             }}
         >
             {

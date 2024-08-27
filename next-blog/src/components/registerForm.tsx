@@ -1,5 +1,8 @@
 "use client"
-import { ErrorMessage, Field, Form, Formik } from "formik";
+import { regAuthor } from "@/lib/author";
+import { IAuthorReg } from "@/type/author";
+import { ErrorMessage, Field, Form, Formik, FormikHelpers } from "formik";
+import { toast } from "react-toastify";
 import * as yup from 'yup'
 
 const RegisterSchema = yup.object().shape({
@@ -10,20 +13,19 @@ const RegisterSchema = yup.object().shape({
       .required("password required")
 });
 
-type InputForm = {
-    name: string,
-    email: string,
-    password: string
-}
-
 export default function RegisterForm() {
-    const onRegister = async (data: InputForm) => {
+    const onRegister = async (data: IAuthorReg, action: FormikHelpers<IAuthorReg>) => {
         try {
-          console.log(data);
+          const { result, ok } = await regAuthor(data)
+          if (!ok) throw result.msg
+          toast.success(result.msg)
+          action.resetForm()
         } catch (err) {
           console.log(err);
+          toast.error(err as string)
         }
     }
+    
     return (
         <Formik
             initialValues={{
@@ -33,8 +35,7 @@ export default function RegisterForm() {
             }}
             validationSchema={RegisterSchema}
             onSubmit={(values, action) => {
-                onRegister(values)
-                action.resetForm()
+                onRegister(values, action)
             }}
         >
             {
