@@ -1,6 +1,7 @@
 import express, { Express, Request, Response } from 'express'
 import { AuthorRouter } from './routers/author.router';
 import cors from 'cors'
+import path from 'path';
 
 const PORT: number = 8000
 
@@ -16,6 +17,9 @@ export default class App {
     private configure(): void {
         this.app.use(cors())
         this.app.use(express.json())
+        this.app.use('/api/public',
+            express.static(path.join(__dirname, "../public"))
+        )
     }
 
     private routes(): void {

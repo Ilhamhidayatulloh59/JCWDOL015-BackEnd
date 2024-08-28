@@ -2,6 +2,10 @@ import { Request, Response } from "express";
 import prisma from "../prisma";
 import { compare, genSalt, hash } from 'bcrypt'
 import { sign } from 'jsonwebtoken'
+import { transporter } from "../helpers/nodemailer";
+import path from "path";
+import fs from 'fs'
+import handlebars from "handlebars"
 
 export class AuthorController {
     async createAuthor(req: Request, res: Response) {
@@ -20,6 +24,22 @@ export class AuthorController {
             const author = await prisma.author.create({
                 data: { name, email, password: hashPassword }
             })
+
+            const templatePath = path.join(__dirname, "../templates", "verification.hbs")
+            const templateSource = fs.readFileSync(templatePath, 'utf-8')
+            const compiledTemplate = handlebars.compile(templateSource)
+            const html = compiledTemplate({
+                name: author.name,
+                link: "https://purwadhika.com"
+            })
+
+            await transporter.sendMail({
+                from: process.env.MAIL_USER,
+                to: author.email,
+                subject: 'Welcome to my Blog',
+                html: html
+            })
+
             res.status(201).send({
                 status: 'ok',
                 msg: 'author created!',
@@ -55,6 +75,28 @@ export class AuthorController {
                 msg: "login success !",
                 token,
                 author: existingAuthor
+            })
+        } catch (err) {
+            res.status(400).send({
+                status: 'error',
+                msg: err
+            })
+        }
+    }
+
+    async editAvatar(req: Request, res: Response) {
+        try {
+            if (!req.file) throw "no file uploaded"
+            const link = `http://localhost:8000/api/public/avatar/${req?.file?.filename}`
+
+            await prisma.author.update({
+                data: { avatar: link },
+                where: { id: req.author?.id}
+            })
+            
+            res.status(200).send({
+                status: 'ok',
+                msg: 'edit avatar success!'
             })
         } catch (err) {
             res.status(400).send({
