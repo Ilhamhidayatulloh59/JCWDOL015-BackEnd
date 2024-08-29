@@ -21,3 +21,11 @@ export interface IBlogs {
         };
     }
 }
+
+export interface BlogInput {
+    title: string;
+    category: string;
+    content: string;
+    slug: string;
+    image?: File | string | null
+  }
