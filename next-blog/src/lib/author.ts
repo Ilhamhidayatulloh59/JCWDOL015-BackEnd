@@ -24,3 +24,14 @@ export const loginAuthor = async (data: IAuthorLogin) => {
     const result = await res.json()
     return { result, ok: res.ok }
 }
+
+export const verifyAuthor = async (token: string) => {
+    const res = await fetch(`${base_url}/authors/verify`, {
+        method: "PATCH",
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    })
+    const result = await res.json()
+    return { result, ok: res.ok }
+}

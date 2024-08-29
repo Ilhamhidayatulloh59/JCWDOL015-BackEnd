@@ -25,12 +25,15 @@ export class AuthorController {
                 data: { name, email, password: hashPassword }
             })
 
+            const payload = { id: author.id }
+            const token = sign(payload, process.env.SECRET_JWT!, { expiresIn: '10m' })
+
             const templatePath = path.join(__dirname, "../templates", "verification.hbs")
             const templateSource = fs.readFileSync(templatePath, 'utf-8')
             const compiledTemplate = handlebars.compile(templateSource)
             const html = compiledTemplate({
                 name: author.name,
-                link: "https://purwadhika.com"
+                link: `http://localhost:3000/verify/${token}`
             })
 
             await transporter.sendMail({
@@ -62,6 +65,7 @@ export class AuthorController {
             })
 
             if (!existingAuthor) throw "author not found !"
+            if (!existingAuthor.isVerify) throw "author not verify !"
 
             const isValidPass = await compare(password, existingAuthor.password)
             
@@ -97,6 +101,30 @@ export class AuthorController {
             res.status(200).send({
                 status: 'ok',
                 msg: 'edit avatar success!'
+            })
+        } catch (err) {
+            res.status(400).send({
+                status: 'error',
+                msg: err
+            })
+        }
+    }
+
+    async verifyAuthor(req: Request, res: Response) {
+        try {
+            const author = await prisma.author.findUnique({
+                where: { id: req.author?.id }
+            })
+            if (author?.isVerify) throw "invalid link"
+
+            await prisma.author.update({
+                data: { isVerify: true },
+                where: { id: req.author?.id }
+            })
+
+            res.status(200).send({
+                status: 'ok',
+                msg: "success verify author !"
             })
         } catch (err) {
             res.status(400).send({

@@ -24,6 +24,7 @@ export class AuthorRouter {
             uploader("avatar", "/avatar").single('avatar'),
             this.authorController.editAvatar
         )
+        this.router.patch('/verify', verifyToken, this.authorController.verifyAuthor)
     }
 
     getRouter(): Router {
