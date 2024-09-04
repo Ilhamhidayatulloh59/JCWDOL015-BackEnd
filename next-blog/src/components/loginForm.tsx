@@ -1,6 +1,8 @@
 "use client"
 import { loginAuthor } from "@/lib/author";
 import { createToken } from "@/lib/server";
+import { useAppDispatch } from "@/redux/hooks";
+import { loginAction } from "@/redux/slice/authorSlice";
 import { IAuthorLogin } from "@/type/author";
 import { ErrorMessage, Field, Form, Formik, FormikHelpers } from "formik";
 import { useRouter } from "next/navigation";
@@ -16,12 +18,15 @@ const LoginSchema = yup.object().shape({
 
 export default function LoginForm() {
     const router = useRouter()
+    const dispatch = useAppDispatch()
+
     const onLogin = async (data: IAuthorLogin, action: FormikHelpers<IAuthorLogin>) => {
         try {
           const { result, ok } = await loginAuthor(data)
           if (!ok) throw result.msg
           toast.success(result.msg)
           action.resetForm()
+          dispatch(loginAction(result.author))
           createToken(result.token)
           router.push('/')
         } catch (err) {
