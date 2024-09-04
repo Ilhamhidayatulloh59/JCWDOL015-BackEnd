@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import prisma from "../prisma";
+import { Prisma } from "@prisma/client";
 
 export class BlogController {
     async createBlog(req: Request, res: Response){
@@ -31,7 +32,15 @@ export class BlogController {
 
     async getBlogs(req: Request, res: Response) {
         try {
+            const { search } = req.query
+            let filter: Prisma.BlogWhereInput = {}
+
+            if(search) {
+                filter.title = { contains: search as string }
+            }
+
             const blogs = await prisma.blog.findMany({
+                where: filter,
                 include: { author: true },
                 orderBy: { createdAt: 'desc' }
             })
